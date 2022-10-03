@@ -85,7 +85,12 @@ contract NftStaker is ERC20, Ownable, ReentrancyGuard {
     }
 
     // admin tokenMint function
-    function adminTokenMint(address _recipient) public onlyOwner {
-        // do something
+    // for restoring tokens for initial token losses.
+    // not a risk because of how we are tracking the owners of each token
+    function adminTokenMint(address _recipient, uint256 _amount)
+        public
+        onlyOwner
+    {
+        _mint(_recipient, _amount);
     }
 }
