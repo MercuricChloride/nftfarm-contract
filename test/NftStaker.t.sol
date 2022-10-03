@@ -147,4 +147,42 @@ contract NFTStakerTest is Test {
     function testDepositAndApprove() public {
         depositAApprovalChecks();
     }
+
+    function testAdminMinting() public {
+        // check the owner
+        assertEq(staker.owner(), address(this));
+
+        // deposit tokens as account A
+        depositA();
+
+        // send those tokens somewhere else
+        vm.prank(a);
+        staker.transfer(address(3), 2);
+
+        // assert balance is 0
+        assertEq(staker.balanceOf(a), 0);
+
+        // expect withdraw to fail
+        uint256[] memory _tokenIds = new uint256[](2);
+        _tokenIds[0] = 1;
+        _tokenIds[1] = 2;
+        vm.prank(a);
+        vm.expectRevert(bytes("ERC20: burn amount exceeds balance"));
+        staker.withdraw(_tokenIds);
+
+        // minting tokens should fail if the caller is not the owner
+        vm.prank(address(69));
+        vm.expectRevert(bytes("Ownable: caller is not the owner"));
+        staker.adminTokenMint(a, 69);
+
+        // mint tokens to a
+        staker.adminTokenMint(a, 2);
+
+        // check the new balance
+        assertEq(staker.balanceOf(a), 2);
+
+        // expect withdraw to succeed
+        vm.prank(a);
+        staker.withdraw(_tokenIds);
+    }
 }

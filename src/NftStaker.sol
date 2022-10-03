@@ -78,25 +78,6 @@ contract NftStaker is ERC20, Ownable, ReentrancyGuard {
         _approve(msg.sender, FARM_ADDRESS, _tokenIds.length);
     }
 
-    //mint and stake function
-    // function mintAndStake(uint256[] memory _tokenIds, uint256 _pid) public {
-    //     //mint tokens for each nft
-    //     deposit(_tokenIds);
-    //     //approve tokens for deposit
-    //     _approve(msg.sender, FARM_ADDRESS, _tokenIds.length);
-    //     //call the deposit function on the farm
-    //     IJYDFarm(FARM_ADDRESS).deposit(_pid, _tokenIds.length);
-    // }
-
-    // override transfer function for the safety rails
-    function _beforeTokenTransfer(
-        address from,
-        address to,
-        uint256 amount
-    ) internal override {
-        // do something
-    }
-
     // admin tokenMint function
     // for restoring tokens for initial token losses.
     // not a risk because of how we are tracking the owners of each token
