@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 interface IJYDFarm {
-    function something() external;
+    function deposit(uint256 _pid, uint256 _amount) external;
 }
 
 contract NftStaker is ERC20, Ownable, ReentrancyGuard {
@@ -70,10 +70,23 @@ contract NftStaker is ERC20, Ownable, ReentrancyGuard {
         _burn(msg.sender, _tokenIds.length);
     }
 
-    //mint and stake function
-    function mintAndStake(uint256[] memory _tokenIds, uint256 _pid) public {
-        // do something
+    //deposit and approve function
+    function depositAndApprove(uint256[] memory _tokenIds) public {
+        //mint tokens for each nft
+        deposit(_tokenIds);
+        //approve tokens for deposit
+        _approve(msg.sender, FARM_ADDRESS, _tokenIds.length);
     }
+
+    //mint and stake function
+    // function mintAndStake(uint256[] memory _tokenIds, uint256 _pid) public {
+    //     //mint tokens for each nft
+    //     deposit(_tokenIds);
+    //     //approve tokens for deposit
+    //     _approve(msg.sender, FARM_ADDRESS, _tokenIds.length);
+    //     //call the deposit function on the farm
+    //     IJYDFarm(FARM_ADDRESS).deposit(_pid, _tokenIds.length);
+    // }
 
     // override transfer function for the safety rails
     function _beforeTokenTransfer(

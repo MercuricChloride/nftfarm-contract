@@ -4,6 +4,7 @@ pragma solidity ^0.8.13;
 import "forge-std/Test.sol";
 import "../src/NftStaker.sol";
 import "../src/SimpleNft.sol";
+import "../src/JYDFarm.sol";
 
 contract NFTStakerTest is Test {
     NftStaker public staker;
@@ -60,6 +61,46 @@ contract NFTStakerTest is Test {
         assertEq(staker.nftToOwner(2), a);
     }
 
+    function depositAApproval() public {
+        uint256[] memory _tokens = new uint256[](2);
+        _tokens[0] = 1;
+        _tokens[1] = 2;
+        for (uint256 i; i < _tokens.length; i++) {
+            // approve tokens
+            vm.prank(a);
+            nft.approve(address(staker), _tokens[i]);
+        }
+        //deposit
+        vm.prank(a);
+        staker.depositAndApprove(_tokens);
+    }
+
+    function depositAApprovalChecks() public {
+        // check the balances are correct at start
+        assertEq(nft.balanceOf(a), 3);
+        assertEq(staker.balanceOf(a), 0);
+
+        // check no owners of the token ids
+        assertEq(staker.nftToOwner(1), address(0));
+        assertEq(staker.nftToOwner(2), address(0));
+
+        // run the deposit logic
+        depositAApproval();
+
+        // check the nfts are held
+        assertEq(nft.balanceOf(a), 1);
+
+        // check the tokens minted
+        assertEq(staker.balanceOf(a), 2);
+
+        // check that owner is tracked
+        assertEq(staker.nftToOwner(1), a);
+        assertEq(staker.nftToOwner(2), a);
+
+        // check the allowance of the farm contract
+        assertEq(staker.allowance(a, staker.FARM_ADDRESS()), 2);
+    }
+
     function testDeposit() public {
         depositAChecks();
     }
@@ -101,5 +142,9 @@ contract NFTStakerTest is Test {
 
         // check the new balance of the msg.sender
         assertEq(staker.balanceOf(a), 0);
+    }
+
+    function testDepositAndApprove() public {
+        depositAApprovalChecks();
     }
 }
