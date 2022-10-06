@@ -14,6 +14,16 @@ contract NftStaker is ERC20, Ownable, ReentrancyGuard {
     // mapping from tokenId -> address
     mapping(uint256 => address) public nftToOwner;
 
+    // deposit event
+    // _staker: msg.sender
+    // _ids: tokenIds deposited
+    event Deposit(address _staker, uint256[] _ids);
+
+    // withdraw event
+    // _staker: msg.sender
+    // _ids: tokenIds removed
+    event Withdraw(address _staker, uint256[] _ids);
+
     // address of the farm
     // prettier-ignore
     address public constant FARM_ADDRESS = 0x6F49bF04668b28f8e66B9E860D8303b6687f0cA0;
@@ -47,12 +57,14 @@ contract NftStaker is ERC20, Ownable, ReentrancyGuard {
                 address(this),
                 _tokenIds[i]
             );
-
             // update the tokenId owner to msg.sender
             nftToOwner[_tokenIds[i]] = msg.sender;
         }
         // mint tokens to the user
         _mint(msg.sender, _tokenIds.length);
+
+        // emit a deposit event
+        emit Deposit(msg.sender, _tokenIds);
     }
 
     //withdraw function
@@ -68,6 +80,8 @@ contract NftStaker is ERC20, Ownable, ReentrancyGuard {
         }
         // mint tokens to the user
         _burn(msg.sender, _tokenIds.length);
+
+        emit Withdraw(msg.sender, _tokenIds);
     }
 
     //deposit and approve function
