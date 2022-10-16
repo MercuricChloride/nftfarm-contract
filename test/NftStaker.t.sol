@@ -106,41 +106,46 @@ contract NFTStakerTest is Test {
     }
 
     function shouldWithdraw() public {
-        // create an array of tokenids
-        uint256[] memory _tokens = new uint256[](2);
-        _tokens[0] = 1;
-        _tokens[1] = 2;
-        // attempt to withdraw
         vm.prank(a);
-        staker.withdraw(_tokens);
+        staker.withdraw(2);
     }
 
     function shouldFailWithdraw() public {
-        // create an array of tokenids
-        uint256[] memory _tokens = new uint256[](2);
-        _tokens[0] = 1;
-        _tokens[1] = 2;
         // attempt to withdraw
         vm.prank(b);
-        vm.expectRevert(bytes("withdraw(), not owner of token!"));
-        staker.withdraw(_tokens);
+        vm.expectRevert();
+        staker.withdraw(2);
     }
 
     function testWithdraw() public {
-        // deposit like we were doing before
-        depositAChecks();
+        // check the balances are correct at start
+        assertEq(nft.balanceOf(a), 3);
 
-        // should fail
+        // run the deposit logic
+        depositA();
+
+        // check the nfts are held
+        assertEq(nft.balanceOf(a), 1);
+        assertEq(nft.balanceOf(address(staker)), 2);
+
+        // check the tokens minted
+        assertEq(staker.balanceOf(a), 2);
+
+        // check that owner is tracked
+        assertEq(staker.nftToOwner(1), a);
+        assertEq(staker.nftToOwner(2), a);
+
+        //run the failing withdraw
         shouldFailWithdraw();
 
-        // should work
+        // run the withdraw logic
         shouldWithdraw();
 
-        // check that the owner of the tokenId was reset
-        assertEq(staker.nftToOwner(1), address(0));
-        assertEq(staker.nftToOwner(2), address(0));
+        // check the nfts are held
+        assertEq(nft.balanceOf(a), 3);
+        assertEq(nft.balanceOf(address(staker)), 0);
 
-        // check the new balance of the msg.sender
+        // check the tokens burned
         assertEq(staker.balanceOf(a), 0);
     }
 
@@ -168,7 +173,7 @@ contract NFTStakerTest is Test {
         _tokenIds[1] = 2;
         vm.prank(a);
         vm.expectRevert(bytes("ERC20: burn amount exceeds balance"));
-        staker.withdraw(_tokenIds);
+        staker.withdraw(2);
 
         // minting tokens should fail if the caller is not the owner
         vm.prank(address(69));
@@ -183,6 +188,6 @@ contract NFTStakerTest is Test {
 
         // expect withdraw to succeed
         vm.prank(a);
-        staker.withdraw(_tokenIds);
+        staker.withdraw(2);
     }
 }

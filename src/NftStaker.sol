@@ -14,6 +14,9 @@ contract NftStaker is ERC20, Ownable, ReentrancyGuard {
     // mapping from tokenId -> address
     mapping(uint256 => address) public nftToOwner;
 
+    //mapping from address -> uint256[] of tokenIds
+    mapping(address => uint256[]) public ownerToNfts;
+
     // deposit event
     // _staker: msg.sender
     // _ids: tokenIds deposited
@@ -59,6 +62,9 @@ contract NftStaker is ERC20, Ownable, ReentrancyGuard {
             );
             // update the tokenId owner to msg.sender
             nftToOwner[_tokenIds[i]] = msg.sender;
+
+            //push the token id to the owner's array
+            ownerToNfts[msg.sender].push(_tokenIds[i]);
         }
         // mint tokens to the user
         _mint(msg.sender, _tokenIds.length);
@@ -68,20 +74,31 @@ contract NftStaker is ERC20, Ownable, ReentrancyGuard {
     }
 
     //withdraw function
-    function withdraw(uint256[] memory _tokenIds) public nonReentrant {
-        // check that nftToOwner for all the tokenIds is equal to msg.sender
-        for (uint256 i; i < _tokenIds.length; i++) {
-            require(
-                nftToOwner[_tokenIds[i]] == msg.sender,
-                "withdraw(), not owner of token!"
-            );
+    function withdraw(uint256 _count) public nonReentrant {
+        require(
+            ownerToNfts[msg.sender].length <= _count,
+            "withdraw(), msg.sender does not have enough deposited tokens!"
+        );
+        for (uint256 i; i < _count; i++) {
+            // grab the last deposited token
+            uint256 length = ownerToNfts[msg.sender].length;
+            uint256 tokenId = ownerToNfts[msg.sender][length - 1];
+
             // update the tokenId owner to address(0) again
-            nftToOwner[_tokenIds[i]] = address(0);
+            nftToOwner[tokenId] = address(0);
+
+            // transfer the nft back to the user
+            IERC721(STAKING_NFT).transferFrom(
+                address(this),
+                msg.sender,
+                tokenId
+            );
+
+            // remove the token id from the owner's array
+            ownerToNfts[msg.sender].pop();
         }
         // mint tokens to the user
-        _burn(msg.sender, _tokenIds.length);
-
-        emit Withdraw(msg.sender, _tokenIds);
+        _burn(msg.sender, _count);
     }
 
     //deposit and approve function
