@@ -1,0 +1,5 @@
+NFTStakerTest:testAdminMinting() (gas: 305640)
+NFTStakerTest:testDeposit() (gas: 257365)
+NFTStakerTest:testDepositAndApprove() (gas: 283828)
+NFTStakerTest:testMaxWithdraw() (gas: 17488366)
+NFTStakerTest:testWithdraw() (gas: 260795)
